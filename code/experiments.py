@@ -73,7 +73,7 @@ R["hetero"] = dict(T=Th.tolist(), sum_caps=float(caps(a8, Th).sum()),
                    J_at_5=objective(a8, target_rate_ls(a8, Th, 5.0), Th))
 
 # Fig. 1: (a) per-channel rates, (b) water levels P_i + 1/a_i
-fig, ax = plt.subplots(1, 2, figsize=(COLW * 2 * 0.98 if False else COLW, 1.75),
+fig, ax = plt.subplots(1, 2, figsize=(COLW, 2.15),
                        gridspec_kw=dict(width_ratios=[1, 1], wspace=0.42))
 idx = np.arange(8)
 w = 0.2
@@ -84,7 +84,7 @@ for j, k in enumerate(["WF", "Capped WF", "Max-min", "TR-LS"]):
               linewidth=0.3, hatch={"WF": "////", "Capped WF": "", "Max-min": "....",
                                     "TR-LS": ""}[k])
 ax[0].axhline(T8, color="#0b0b0b", lw=0.8, ls="--")
-ax[0].text(7.6, T8 + 0.12, "target $T$", ha="right", va="bottom", fontsize=6.5)
+ax[0].text(7.6, T8 + 0.12, "target $T$", ha="right", va="bottom", fontsize=7)
 ax[0].set_xticks(idx, [f"{int(v)}" for v in a8])
 ax[0].set_xlabel("channel gain $a_i$")
 ax[0].set_ylabel("rate $r_i$ (b/s/Hz)")
@@ -108,9 +108,9 @@ ax[1].set_xlabel("channel gain $a_i$")
 ax[1].set_ylabel("$P_i + 1/a_i$")
 ax[1].grid(axis="x", visible=False)
 ax[1].set_title("(b) level $P_i+1/a_i$", fontsize=8)
-ax[1].legend(loc="upper left", frameon=False, fontsize=6, handlelength=1.4)
+ax[1].legend(loc="upper left", frameon=False, fontsize=7, handlelength=1.4)
 h0, l0 = ax[0].get_legend_handles_labels()
-fig.legend(h0, l0, loc="lower center", ncol=4, frameon=False, fontsize=6,
+fig.legend(h0, l0, loc="lower center", ncol=2, frameon=False, fontsize=7,
            bbox_to_anchor=(0.5, 1.0), handlelength=1.2, columnspacing=0.8)
 fig.savefig(os.path.join(FIG, "fig_example.pdf"))
 plt.close(fig)
@@ -126,7 +126,7 @@ for Pt in Pts:
         sweep[k]["served"].append(float(np.minimum(rates(a8, Pk), T8).sum() / 24))
 R["sweep"] = dict(Ptot=Pts.tolist(), **sweep)
 
-fig, ax = plt.subplots(1, 2, figsize=(COLW, 1.6), gridspec_kw=dict(wspace=0.45))
+fig, ax = plt.subplots(1, 2, figsize=(COLW, 1.95), gridspec_kw=dict(wspace=0.45))
 for k in ["TR-LS", "Capped WF", "Max-min", "WF", "Uniform"]:
     s = STYLE[k]
     ax[0].plot(Pts, np.maximum(sweep[k]["J"], 1e-3), color=s["color"], ls=s["ls"],
@@ -138,12 +138,12 @@ for x in ax:
     x.set_xlabel("power budget $P_{\\mathrm{tot}}$")
 ax[0].set_yscale("log"); ax[0].set_ylim(1e-3, 300)
 ax[0].set_ylabel("$J=\\sum_i (r_i-T)^2$")
-ax[0].text(R["example"]["sum_caps"] + 0.4, 60, "$\\sum_i\\bar P_i$", fontsize=6.5)
+ax[0].text(R["example"]["sum_caps"] + 0.4, 60, "$\\sum_i\\bar P_i$", fontsize=7)
 ax[1].set_ylabel("power used (%)"); ax[1].set_ylim(0, 108)
 ax[0].set_title("(a) squared deviation", fontsize=8)
 ax[1].set_title("(b) budget spent", fontsize=8)
 h0, l0 = ax[0].get_legend_handles_labels()
-fig.legend(h0, l0, loc="lower center", ncol=3, frameon=False, fontsize=6,
+fig.legend(h0, l0, loc="lower center", ncol=2, frameon=False, fontsize=7,
            bbox_to_anchor=(0.5, 1.0), handlelength=1.8, columnspacing=0.8)
 fig.savefig(os.path.join(FIG, "fig_sweep.pdf"))
 plt.close(fig)
@@ -197,7 +197,7 @@ R["fading"] = dict(N=N_SC, T=T_SC, realizations=REAL, snr_db=SNRS_DB, mean=fad_m
                    caseA_frac={s: caseA[s] / REAL for s in SNRS_DB})
 
 # Fig. 3: (a) CDF of per-channel satisfaction at 10 dB, (b) served vs SNR, (c) p10 vs SNR
-fig = plt.figure(figsize=(COLW, 2.9))
+fig = plt.figure(figsize=(COLW, 3.5))
 gs = fig.add_gridspec(2, 2, height_ratios=[1.05, 1], hspace=0.62, wspace=0.45)
 axc = fig.add_subplot(gs[0, :])
 s0 = 10
@@ -210,7 +210,7 @@ axc.set_xlabel("per-channel satisfaction $\\min(r_i,T)/T$")
 axc.set_ylabel("CDF")
 axc.set_xlim(-0.02, 1.02); axc.set_ylim(0, 1.0)
 axc.set_title(f"(a) distribution at mean SNR {s0} dB", fontsize=8)
-axc.legend(loc="upper left", frameon=False, fontsize=6, ncol=2, handlelength=1.8)
+axc.legend(loc="upper left", frameon=False, fontsize=7, ncol=2, handlelength=1.8)
 ax1 = fig.add_subplot(gs[1, 0]); ax2 = fig.add_subplot(gs[1, 1])
 for k in ["TR-LS", "Capped WF", "Max-min", "WF", "Uniform"]:
     st = STYLE[k]

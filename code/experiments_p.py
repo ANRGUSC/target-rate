@@ -40,7 +40,7 @@ if __name__ == "__main__":
         for r in out[str(s)]:
             print(s, r)
 
-    fig, axs = plt.subplots(1, 2, figsize=(S.COLW, 1.7), gridspec_kw=dict(wspace=0.38))
+    fig, axs = plt.subplots(1, 2, figsize=(S.COLW, 2.1), gridspec_kw=dict(wspace=0.38))
     for ax, s, col, mk in [(axs[0], 5, "#2a78d6", "o"), (axs[1], 10, "#eb6834", "s")]:
         v = agg[s]
         ax.plot(100 * v[:, 2], 100 * v[:, 0], color=col, marker=mk, ms=3.5, lw=1.2)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
             if lab:
                 off = {1.0: (-3, -9), 2.0: (7, -9), 5.0: (4, 1), np.inf: (4, -2)}[p]
                 ax.annotate(lab, (100 * v[j, 2], 100 * v[j, 0]), textcoords="offset points",
-                            xytext=off, fontsize=6, ha="right" if p == 1.0 else "left")
+                            xytext=off, fontsize=7, ha="right" if p == 1.0 else "left")
         j2 = PS.index(2.0)
         ax.plot(100 * v[j2, 2], 100 * v[j2, 0], marker=mk, ms=7, mfc="none", mec="#0b0b0b",
                 mew=0.8, ls="none")

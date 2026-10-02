@@ -40,30 +40,42 @@ with open(os.path.join(OUT, "numbers.tex"), "w") as f:
     for k, v in macros.items():
         f.write(f"\\newcommand{{\\{k}}}{{{v}}}\n")
 
-# ---- fading table
-names = [("TR-LS", "\\textit{Target-rate}"), ("Capped WF", "Capped WF"), ("Max-min", "Max-min"),
-         ("PF", "Prop.\\ fair"), ("WF", "Waterfilling"), ("Uniform", "Uniform")]
-cols = [("served", "Mean"), ("p5", "P5"), ("starved", "Starved"), ("jain", "Jain")]
+# ---- fading table (target-aware methods first; best in bold, second best underlined)
+aware = [("TR-LS", "\\textit{Target-rate}"), ("Capped WF", "Capped WF"), ("Max-min", "Max-min")]
+agnostic = [("PF", "Prop.\\ fair"), ("WF", "Waterfilling"), ("Uniform", "Uniform")]
+names = aware + agnostic
+cols = [("served", "Mean"), ("p5", "P5"), ("starved", "Starved"), ("msd", "Dev.")]
+LOWER = {"starved", "msd"}
+def shown(c, v):
+    if c == "msd":
+        return round(v, 2) if v >= 0.1 else round(v, 3)
+    return round(100 * v, 2) if c == "starved" else round(100 * v, 1)
 lines = [r"\footnotesize\begin{tabular}{@{}l" + "rrrr" * 2 + "@{}}", r"\toprule",
          r" & \multicolumn{4}{c}{$\bar\gamma=%s$ dB} & \multicolumn{4}{c}{$\bar\gamma=%s$ dB}\\" % (LO, MID),
          r"\cmidrule(lr){2-5}\cmidrule(lr){6-9}",
-         "Method & " + " & ".join([c[1] for c in cols] * 2) + r"\\",
-         r" & \% & \% & \% & & \% & \% & \% & \\", r"\midrule"]
-best = {}
-for s in (LO, MID):
+         "Method & " + " & ".join([c[1] for c in cols] * 2) + r"\\", r"\midrule"]
+mark = {}
+for s_ in (LO, MID):
     for c, _ in cols:
-        vals = {k: F[s][k][c] for k, _ in names}
-        best[(s, c)] = min(vals.values()) if c == "starved" else max(vals.values())
-for k, lab in names:
+        vals = sorted({shown(c, F[s_][k][c]) for k, _ in names}, reverse=c not in LOWER)
+        best = vals[0]
+        n_best = sum(shown(c, F[s_][k][c]) == best for k, _ in names)
+        second = vals[1] if (n_best == 1 and len(vals) > 1) else None   # no runner-up when the best is tied
+        mark[(s_, c)] = (best, second)
+def row(k, lab):
     cells = []
-    for s in (LO, MID):
+    for s_ in (LO, MID):
         for c, _ in cols:
-            v = F[s][k][c]
-            txt = f"{v:.2f}" if c == "jain" else (pct(v, 2) if c == "starved" else pct(v))
-            if abs(v - best[(s, c)]) < 5e-4:
+            v = shown(c, F[s_][k][c])
+            txt = (f"{v:.3f}" if (c == "msd" and v < 0.1) else f"{v:.2f}") if c in ("msd", "starved") else f"{v:.1f}"
+            best, second = mark[(s_, c)]
+            if v == best:
                 txt = r"\textbf{" + txt + "}"
+            elif second is not None and v == second:
+                txt = r"\underline{" + txt + "}"
             cells.append(txt)
-    lines.append(lab + " & " + " & ".join(cells) + r"\\")
+    return lab + " & " + " & ".join(cells) + r"\\"
+lines += [row(k, lab) for k, lab in aware] + [r"\midrule"] + [row(k, lab) for k, lab in agnostic]
 lines += [r"\bottomrule", r"\end{tabular}"]
 open(os.path.join(OUT, "tab_fading.tex"), "w").write("\n".join(lines) + "\n")
 
@@ -82,30 +94,3 @@ lines += [r"\bottomrule", r"\end{tabular}"]
 open(os.path.join(OUT, "tab_runtime.tex"), "w").write("\n".join(lines) + "\n")
 print(macros)
 
-# ---- mixed-traffic table
-H = json.load(open(os.path.join(HERE, "results_hetero.json")))
-hn = [("TR-LS", "\\textit{Target-rate}"), ("TR-NLS", "\\textit{Target-rate}, $w_i{=}T_i^{-2}$"),
-      ("Capped WF", "Capped WF"), ("Max-min", "Max-min"), ("PF", "Prop.\\ fair"),
-      ("WF", "Waterfilling"), ("Uniform", "Uniform")]
-hc = [("served", "Sat."), ("bits", "Bits"), ("p5", "P5"), ("starved", "Starved")]
-lines = [r"\footnotesize\begin{tabular}{@{}l" + "rrrr" * 2 + "@{}}", r"\toprule",
-         r" & \multicolumn{4}{c}{$\bar\gamma=5$ dB} & \multicolumn{4}{c}{$\bar\gamma=10$ dB}\\",
-         r"\cmidrule(lr){2-5}\cmidrule(lr){6-9}",
-         "Method & " + " & ".join([c[1] for c in hc] * 2) + r"\\", r"\midrule"]
-hb = {}
-for s in ("5", "10"):
-    for c, _ in hc:
-        vals = [H[s][k][c] for k, _ in hn]
-        hb[(s, c)] = min(vals) if c == "starved" else max(vals)
-for k, lab in hn:
-    cells = []
-    for s in ("5", "10"):
-        for c, _ in hc:
-            v = H[s][k][c]
-            txt = pct(v, 2) if c == "starved" else pct(v)
-            if abs(v - hb[(s, c)]) < 5e-4:
-                txt = r"\textbf{" + txt + "}"
-            cells.append(txt)
-    lines.append(lab + " & " + " & ".join(cells) + r"\\")
-lines += [r"\bottomrule", r"\end{tabular}"]
-open(os.path.join(OUT, "tab_hetero.tex"), "w").write("\n".join(lines) + "\n")
